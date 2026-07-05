@@ -9,7 +9,7 @@ void yyerror(const char *s);
 
 /* Declaración de Tokens */
 %token TOKEN_PERSONAJE TOKEN_ATRIBUTOS TOKEN_RESTRICCIONES TOKEN_ALRECIBIR
-%token TOKEN_INYECTAR TOKEN_SI TOKEN_SINO TOKEN_RESPONDER TOKEN_GENERAR TOKEN_FUNCION
+%token TOKEN_INYECTAR TOKEN_SI TOKEN_SINO TOKEN_CONTIENE TOKEN_RESPONDER TOKEN_GENERAR TOKEN_FUNCION
 %token ID STRING
 
 %%
@@ -27,26 +27,30 @@ secciones : bloque_atributos_declaracion bloque_restricciones_declaracion bloque
           ;
 
 /* Atributos */
-bloque_atributos_declaracion : TOKEN_ATRIBUTOS '{' '}' lista_asignaciones
-                             | TOKEN_ATRIBUTOS '{' lista_asignaciones '}'
-                             | lista_asignaciones
+bloque_atributos_declaracion : TOKEN_ATRIBUTOS '{' lista_asignaciones_opt '}'
                              ;
 
+lista_asignaciones_opt : /* vacio */
+                      | lista_asignaciones
+                      ;
+
 lista_asignaciones : lista_asignaciones asignacion
-                   | /* vacio */
+                   | asignacion
                    ;
 
 asignacion : ID ':' STRING ';' { printf("[Oracion Valida] Atributo/Propiedad declarada.\n"); }
            ;
 
 /* Restricciones */
-bloque_restricciones_declaracion : TOKEN_RESTRICCIONES '{' '}' lista_restricciones
-                                 | TOKEN_RESTRICCIONES '{' lista_restricciones '}'
-                                 | lista_restricciones
+bloque_restricciones_declaracion : TOKEN_RESTRICCIONES '{' lista_restricciones_opt '}'
                                  ;
 
+lista_restricciones_opt : /* vacio */
+                       | lista_restricciones
+                       ;
+
 lista_restricciones : lista_restricciones restriccion
-                    | /* vacio */
+                    | restriccion
                     ;
 
 restriccion : ID ':' '[' lista_strings ']' ';' { printf("[Oracion Valida] Restriccion de lista indexada.\n"); }
@@ -74,7 +78,7 @@ funcion_bloque : TOKEN_FUNCION ID '(' ID ')' '{' cuerpo_funcion '}'
 cuerpo_funcion : condicional_si
                ;
 
-condicional_si : TOKEN_SI '(' ID ID STRING ')' '{' instruccion_interna '}' bloque_sino
+condicional_si : TOKEN_SI '(' ID TOKEN_CONTIENE STRING ')' '{' instruccion_interna '}' bloque_sino
                { printf("[Oracion Valida] Estructura de control condicional 'Si' procesada.\n"); }
                ;
 

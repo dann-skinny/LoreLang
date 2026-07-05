@@ -20,6 +20,7 @@
 "InyectarContexto"      { return TOKEN_INYECTAR; }
 "Si"                    { return TOKEN_SI; }
 "Sino"                  { return TOKEN_SINO; }
+"contiene"              { return TOKEN_CONTIENE; }
 "Responder"             { return TOKEN_RESPONDER; }
 "GenerarRespuesta"      { return TOKEN_GENERAR; }
 "Funcion"               { return TOKEN_FUNCION; }
