@@ -1,45 +1,26 @@
 # LoreLang
 
-## Probar el parser
+## Compilación y uso
 
-Desde la raiz del proyecto:
+Usa el script portable desde la raíz para compilar el parser (autodetecta las herramientas necesarias como `lex`/`flex` y `yacc`/`bison` según el OS):
 
 ```bash
-bash ./compile.sh
+./compile.sh          # Compilar
+./compile.sh --bison  # Forzar uso de Bison (Recomendado para macos)
+./compile.sh -c --clean       # Limpiar archivos generados 
 ```
 
-Ese script:
-
-1. Ejecuta `lex` sobre `lorelang.lex`.
-2. Ejecuta `yacc -d` sobre `lorelang.y`.
-3. Compila el binario `lorelang`.
-4. Ejecuta `./lorelang < tom_nook.lore`.
-
-Tambien puedes correrlo manualmente:
-
+**Ejecutar script de prueba:**
 ```bash
-lex lorelang.lex
-yacc -d lorelang.y
-cc y.tab.c lex.yy.c -lfl -o lorelang
 ./lorelang < tom_nook.lore
 ```
 
-Para probar otro archivo:
+<details>
+<summary>Comandos manuales para depuración</summary>
 
 ```bash
-./lorelang < mi_prueba.lore
+lex lorelang.lex                       # lexer
+yacc -d lorelang.y                     # parser (o bison -y -d)
+cc y.tab.c lex.yy.c -lfl -o lorelang   # enlazar (probar -ll si falla)
 ```
-
-## Limpiar archivos generados
-
-Para eliminar artefactos generados por la compilacion:
-
-```bash
-bash ./compile.sh --clean
-```
-
-Tambien disponible en forma corta:
-
-```bash
-bash ./compile.sh -c
-```
+</details>
