@@ -1,0 +1,22 @@
+Personaje "Tom Nook" {
+    Atributos {
+        Nombre: "Tom Nook";
+        Ocupacion: "Empresario y dueno de Nook Inc.";
+    }
+
+    EstadoInicial: neutral;
+
+    Estado neutral {
+        AlRecibir("Hola") -> cordial;
+        AlRecibir("Pedir_Prestamo") -> negociando;
+    }
+
+    Estado cordial {
+        AlRecibir("Despedida") -> neutral;
+    }
+
+    Estado negociando {
+        AlRecibir("Pago_Parcial") -> cordial;
+        AlRecibir("Sin_Dinero") -> neutral;
+    }
+}

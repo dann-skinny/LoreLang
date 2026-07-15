@@ -1,5 +1,13 @@
 # LoreLang
 
+## Frontend Go (Participle)
+
+Este repositorio ahora incluye un frontend en Go para parsear archivos `.lore` y validar coherencia semántica básica de FSM (estado inicial, estados y transiciones `AlRecibir`).
+
+```bash
+go run ./cmd/lorelang ./tom_nook_fsm.lore
+```
+
 ## Compilación y uso
 
 Usa el script portable desde la raíz para compilar el parser (autodetecta las herramientas necesarias como `lex`/`flex` y `yacc`/`bison` según el OS):
