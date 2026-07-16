@@ -1,8 +1,11 @@
 # LoreLang
 
-## Compilacion
-
+## How to build lorrelang compiler
 
 ```bash
-go run ./cmd/lorelang ./tom_nook.lore
+cd ./compiler/
+
+go build -o lorelang cmd/lorelang/main.go
 ```
+
+This will generate an executable `lorelang` 
