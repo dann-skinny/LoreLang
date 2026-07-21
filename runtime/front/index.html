@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoreLang Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  </head>
+  <body class="min-h-screen bg-slate-100 p-4 text-slate-800 sm:p-6">
+    <main class="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-3xl items-center justify-center sm:min-h-[calc(100vh-3rem)]">
+      <section
+        x-data="chatApp()"
+        x-init="init()"
+        class="flex h-[85vh] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+      >
+        <header class="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5">
+          <div>
+            <h1 class="text-base font-semibold sm:text-lg">LoreLang NPC Chat</h1>
+            <p class="text-xs text-slate-500 sm:text-sm">Interfaz local</p>
+          </div>
+          <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              :class="ollamaActivo === null ? 'bg-amber-400' : (ollamaActivo ? 'bg-emerald-500' : 'bg-rose-500')"
+            ></span>
+            <span class="text-xs font-medium text-slate-600 sm:text-sm">Ollama Local</span>
+          </div>
+        </header>
+
+        <div x-ref="contenedorMensajes" class="flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-4 sm:px-5">
+          <template x-if="mensajes.length === 0">
+            <p class="rounded-xl border border-dashed border-slate-300 bg-white p-3 text-center text-sm text-slate-500">
+              Escribe tu primer mensaje para conversar con el NPC.
+            </p>
+          </template>
+
+          <template x-for="(mensaje, index) in mensajes" :key="index">
+            <div class="flex" :class="mensaje.rol === 'usuario' ? 'justify-end' : 'justify-start'">
+              <div
+                class="max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm sm:max-w-[75%] sm:text-base"
+                :class="mensaje.rol === 'usuario'
+                  ? 'rounded-br-md bg-blue-600 text-white'
+                  : 'rounded-bl-md border border-slate-200 bg-white text-slate-800'"
+                x-text="mensaje.texto"
+              ></div>
+            </div>
+          </template>
+
+          <template x-if="loading">
+            <div class="flex justify-start">
+              <div class="rounded-2xl rounded-bl-md border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500 shadow-sm">
+                NPC escribiendo...
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <form @submit.prevent="enviarMensaje" class="border-t border-slate-200 bg-white p-3 sm:p-4">
+          <div class="flex items-end gap-2 sm:gap-3">
+            <textarea
+              x-model="textoInput"
+              rows="1"
+              placeholder="Escribe tu mensaje..."
+              class="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-100 sm:text-base"
+              :disabled="loading"
+              @keydown.enter.prevent="!$event.shiftKey && enviarMensaje()"
+            ></textarea>
+            <button
+              type="submit"
+              class="h-11 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400 sm:px-5 sm:text-base"
+              :disabled="loading || !textoInput.trim()"
+            >
+              <span x-show="!loading">Enviar</span>
+              <span x-show="loading">...</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      function chatApp() {
+        return {
+          mensajes: [],
+          textoInput: "",
+          loading: false,
+          ollamaActivo: null,
+
+          init() {
+            this.verificarEstadoOllama();
+            this.$watch("mensajes", () => this.scrollAlFinal());
+          },
+
+          async verificarEstadoOllama() {
+            const urlOllama = "http://localhost:11434/";
+
+            try {
+              // Si el GET estándar responde, Ollama está disponible.
+              await fetch(urlOllama);
+              this.ollamaActivo = true;
+            } catch (_) {
+              try {
+                // Este intento detecta servidor vivo incluso si hay bloqueo CORS.
+                await fetch(urlOllama, { mode: "no-cors" });
+                this.ollamaActivo = true;
+              } catch (_) {
+                this.ollamaActivo = false;
+              }
+            }
+          },
+
+          async enviarMensaje() {
+            const texto = this.textoInput.trim();
+            if (!texto || this.loading) return;
+
+            this.mensajes.push({ rol: "usuario", texto });
+            this.textoInput = "";
+            this.loading = true;
+
+            try {
+              const respuesta = await fetch("http://127.0.0.1:4567/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mensaje: texto }),
+              });
+
+              if (!respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta.status}`);
+              }
+
+              const data = await respuesta.json();
+              this.mensajes.push({
+                rol: "npc",
+                texto: data?.respuesta || "No se recibió respuesta del NPC.",
+              });
+            } catch (error) {
+              this.mensajes.push({
+                rol: "npc",
+                texto: "No pude conectar con el servidor de chat. Verifica que Sinatra siga activo.",
+              });
+            } finally {
+              this.loading = false;
+            }
+          },
+
+          scrollAlFinal() {
+            this.$nextTick(() => {
+              const contenedor = this.$refs.contenedorMensajes;
+              if (contenedor) contenedor.scrollTop = contenedor.scrollHeight;
+            });
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
