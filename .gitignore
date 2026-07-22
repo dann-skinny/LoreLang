@@ -3,3 +3,4 @@
 *.tab.h
 lorelang
 *_agent.rb
+.DS_Store
