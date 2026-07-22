@@ -146,7 +146,6 @@ func GenerateRuby(ast *parser.Program, outputPath string) error {
 func buildTemplateData(ast *parser.Program) (rubyTemplateData, error) {
 	char := ast.Character
 
-	charName := unquoteOrRaw(char.Name)
 	data := rubyTemplateData{
 		ClassName:        "Agent",
 		InitialState:     toRubySymbol(char.InitialState),

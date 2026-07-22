@@ -1,4 +1,4 @@
-class TomNookAgent
+class Agent
   ATRIBUTOS = {
     nombre: "Tom Nook",
     ocupacion: "Empresario y dueno de Nook Inc.",
@@ -20,10 +20,7 @@ class TomNookAgent
 
   def evaluar_mensaje(input)
     texto = input.to_s.downcase
-    # ComportamientoGlobal
-    if texto.include?("bayas")
-      return { accion: :llm, contexto: "El usuario menciona bayas (dinero). Muestra un interes inmediato y frota tus manos metaforicamente. Recuerdale que las bayas son el motor de la isla.", nuevo_estado: nil }
-    end
+
     case @estado_actual
     when :neutral
       if texto.include?("hola")
@@ -53,6 +50,10 @@ class TomNookAgent
         @estado_actual = :negociando
         return { accion: :llm, contexto: "El usuario quiere endeudarse mas a pesar de no tener fondos. Adviertele sobre los riesgos financieros con tu tono profesional.", nuevo_estado: @estado_actual }
       end
+    end
+    # ComportamientoGlobal
+    if texto.include?("bayas")
+      return { accion: :llm, contexto: "El usuario menciona bayas (dinero). Muestra un interes inmediato y frota tus manos metaforicamente. Recuerdale que las bayas son el motor de la isla.", nuevo_estado: nil }
     end
     return { accion: :llm, contexto: "El usuario dice algo que no entiendes o que esta fuera de lugar. Finge un poco de confusion educada y desvia la conversacion de vuelta a los negocios o a su hipoteca. ¡Si, si!", nuevo_estado: nil }
   end
