@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,12 +12,20 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Uso: %s <archivo.lore>\n", filepath.Base(os.Args[0]))
+	var outputPath string
+	flag.StringVar(&outputPath, "o", "", "Ruta del archivo Ruby generado (por defecto: junto al archivo fuente)")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Uso: %s [opciones] <archivo.lore>\n\nOpciones:\n", filepath.Base(os.Args[0]))
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+
+	if flag.NArg() != 1 {
+		flag.Usage()
 		os.Exit(2)
 	}
 
-	file := os.Args[1]
+	file := flag.Arg(0)
 	src, err := os.ReadFile(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "No se pudo leer el archivo %q: %v\n", file, err)
@@ -29,8 +38,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	outputFile := filepath.Join(filepath.Dir(file), generator.OutputFileName(ast))
-	if err := generator.GenerateRuby(ast, outputFile); err != nil {
+	// Si no se especifica -o, el archivo .rb se genera junto al .lore
+	if outputPath == "" {
+		outputPath = filepath.Join(filepath.Dir(file), generator.OutputFileName(ast))
+	}
+
+	if err := generator.GenerateRuby(ast, outputPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error generando Ruby: %v\n", err)
 		os.Exit(1)
 	}
@@ -43,6 +56,6 @@ func main() {
 
 	fmt.Printf(
 		"OK: personaje %q parseado correctamente (%d atributos, %d conocimientos, %d restricciones, estado inicial %q, %d estados). Ruby generado en %q.\n",
-		name, len(char.Attributes), len(char.KnowledgeEntries), len(char.Restrictions), char.InitialState, len(char.States), outputFile,
+		name, len(char.Attributes), len(char.KnowledgeEntries), len(char.Restrictions), char.InitialState, len(char.States), outputPath,
 	)
 }

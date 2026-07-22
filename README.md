@@ -11,7 +11,7 @@ Este repositorio consta de dos partes principales:
 
 Asegúrate de contar con los siguientes entornos instalados:
 
-- **[Go](https://go.dev/)** (v1.18+ recomendado)
+- **[Go](https://go.dev/)** (v1.22+ recomendado)
 - **[Ruby](https://www.ruby-lang.org/)** (v3.0+ recomendado)
 - **Gemas de Ruby necesarias**:
 
@@ -32,44 +32,71 @@ Asegúrate de contar con los siguientes entornos instalados:
 
 ### 1. Compilar el Parser (Go)
 
-Navega a la carpeta `compiler` y compila el binario ejecutable de LoreLang:
+Desde la **raíz del proyecto**, ejecuta:
 
 ```bash
-cd compiler
-go build -o lorelang cmd/lorelang/main.go
+go build -C compiler -o ../build/lorelang ./cmd/lorelang
 ```
 
-Esto generará el ejecutable `lorelang` dentro del directorio `compiler/`.
+Esto generará el ejecutable `build/lorelang`.
 
 ---
 
-### 2. Generar el código Ruby y moverlo a `runtime/`
+### 2. Generar el código Ruby
 
-Ejecuta el compilador pasándole tu archivo de código fuente en LoreLang (por ejemplo, `script.lore`):
+El compilador acepta tu archivo `.lore` y produce un archivo Ruby (`.rb`). Tienes dos formas de usarlo:
+
+Todos los comandos a continuación se ejecutan desde la **raíz del proyecto**.
+
+#### Opción A — Output por defecto (junto al archivo fuente)
 
 ```bash
-./lorelang ruta/a/tu_archivo.lore
+./build/lorelang examples/tom_nook.lore
 ```
 
-> **⚠️ Importante**: El compilador generará un archivo de código fuente en Ruby (`.rb`) en la ubicación donde ejecutes el comando. **Debes mover el archivo generado a la carpeta `runtime/`** antes de iniciar el servidor.
+El archivo `.rb` se generará en el mismo directorio que el `.lore`.
 
-Ejemplo:
+#### Opción B — Especificar la ruta de salida con `-o`
+
+Usa el flag `-o` para indicar exactamente dónde quieres que se genere el archivo Ruby:
 
 ```bash
-mv agente_generado.rb ../runtime/
+./build/lorelang -o ruta/de/salida/agente.rb examples/tu_archivo.lore
+```
+
+Por ejemplo, para generar el archivo directamente en `runtime/`:
+
+```bash
+./build/lorelang -o runtime/tom_nook_agent.rb examples/tom_nook.lore
+```
+
+> **✅ Recomendado**: Usa `-o` apuntando a `runtime/` para evitar tener que mover el archivo manualmente.
+
+#### Ayuda del compilador
+
+```bash
+./build/lorelang -h
+```
+
+```
+Uso: lorelang [opciones] <archivo.lore>
+
+Opciones:
+  -o string
+        Ruta del archivo Ruby generado (por defecto: junto al archivo fuente)
 ```
 
 ---
 
 ### 3. Ejecutar el Servidor (Ruby)
 
-Navega al directorio `runtime/` y ejecuta el servidor:
+Desde la raíz del proyecto, navega a `runtime/` y ejecuta el servidor:
 
 ```bash
-cd ../runtime
+cd runtime
 ruby server.rb
 ```
 
 El servidor quedará en ejecución escuchando las peticiones locales.
 
-### 4. Abrir './runtime/front/index.html' en tu navegador
+### 4. Abrir `./runtime/front/index.html` en tu navegador

@@ -1,6 +1,6 @@
 *.yy.c
 *.tab.c
 *.tab.h
-/compiler/lorelang
-*_agent.rb
+/build/
+# *_agent.rb
 .DS_Store

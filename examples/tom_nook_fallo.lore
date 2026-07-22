@@ -1,4 +1,4 @@
-Personaje "Tom Nook" {
+Person "Tom Nook" {
     Atributos {
         Nombre: "Tom Nook";
         Ocupacion: "Empresario y dueno de Nook Inc.";
