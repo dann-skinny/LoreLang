@@ -1,0 +1,48 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
+	"lorelang/internal/generator"
+	"lorelang/internal/parser"
+)
+
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Fprintf(os.Stderr, "Uso: %s <archivo.lore>\n", filepath.Base(os.Args[0]))
+		os.Exit(2)
+	}
+
+	file := os.Args[1]
+	src, err := os.ReadFile(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "No se pudo leer el archivo %q: %v\n", file, err)
+		os.Exit(1)
+	}
+
+	ast, err := parser.Parse(file, src)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error sintactico: %v\n", err)
+		os.Exit(1)
+	}
+
+	outputFile := filepath.Join(filepath.Dir(file), generator.OutputFileName(ast))
+	if err := generator.GenerateRuby(ast, outputFile); err != nil {
+		fmt.Fprintf(os.Stderr, "Error generando Ruby: %v\n", err)
+		os.Exit(1)
+	}
+
+	char := ast.Character
+	name, err := strconv.Unquote(char.Name)
+	if err != nil {
+		name = char.Name
+	}
+
+	fmt.Printf(
+		"OK: personaje %q parseado correctamente (%d atributos, %d conocimientos, %d restricciones, estado inicial %q, %d estados). Ruby generado en %q.\n",
+		name, len(char.Attributes), len(char.KnowledgeEntries), len(char.Restrictions), char.InitialState, len(char.States), outputFile,
+	)
+}
