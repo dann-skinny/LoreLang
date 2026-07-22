@@ -47,8 +47,8 @@ type GlobalRule struct {
 
 // ReceiveRule representa un bloque AlRecibir.
 type ReceiveRule struct {
-	Trigger string   `"AlRecibir" "(" @String ")" "{"`
-	Actions []Action `@@+ "}"`
+	Triggers []string `"AlRecibir" "(" @String ( "," @String )* ")" "{"`
+	Actions  []Action `@@+ "}"`
 }
 
 // UnknownRule representa el fallback AlDesconocer.

@@ -35,8 +35,8 @@ type rubyState struct {
 }
 
 type rubyRule struct {
-	Trigger string
-	Outcome rubyOutcome
+	Triggers []string
+	Outcome  rubyOutcome
 }
 
 type rubyOutcome struct {
@@ -72,24 +72,12 @@ var rubyAgentTemplate = template.Must(template.New("ruby_agent").Parse(`class {{
   def evaluar_mensaje(input)
     texto = input.to_s.downcase
 
-{{- if .GlobalRules}}
-    # ComportamientoGlobal
-{{- range $i, $rule := .GlobalRules}}
-    {{if eq $i 0}}if{{else}}elsif{{end}} texto.include?({{$rule.Trigger}})
-{{- if $rule.Outcome.HasNewState}}
-      @estado_actual = {{$rule.Outcome.NewState}}
-{{- end}}
-      return { accion: {{$rule.Outcome.Action}}, contexto: {{$rule.Outcome.Context}}, nuevo_estado: {{if $rule.Outcome.HasNewState}}@estado_actual{{else}}nil{{end}} }
-{{- end}}
-    end
-
-{{- end}}
     case @estado_actual
 {{- range .States}}
     when {{.Name}}
 {{- if .Rules}}
 {{- range $i, $rule := .Rules}}
-      {{if eq $i 0}}if{{else}}elsif{{end}} texto.include?({{$rule.Trigger}})
+      {{if eq $i 0}}if{{else}}elsif{{end}} {{range $j, $t := $rule.Triggers}}{{if gt $j 0}} || {{end}}texto.include?({{$t}}){{end}}
 {{- if $rule.Outcome.HasNewState}}
         @estado_actual = {{$rule.Outcome.NewState}}
 {{- end}}
@@ -99,6 +87,18 @@ var rubyAgentTemplate = template.Must(template.New("ruby_agent").Parse(`class {{
 {{- end}}
 {{- end}}
     end
+
+{{- if .GlobalRules}}
+    # ComportamientoGlobal
+{{- range $i, $rule := .GlobalRules}}
+    {{if eq $i 0}}if{{else}}elsif{{end}} {{range $j, $t := $rule.Triggers}}{{if gt $j 0}} || {{end}}texto.include?({{$t}}){{end}}
+{{- if $rule.Outcome.HasNewState}}
+      @estado_actual = {{$rule.Outcome.NewState}}
+{{- end}}
+      return { accion: {{$rule.Outcome.Action}}, contexto: {{$rule.Outcome.Context}}, nuevo_estado: {{if $rule.Outcome.HasNewState}}@estado_actual{{else}}nil{{end}} }
+{{- end}}
+    end
+{{- end}}
 
 {{- if .HasUnknownFallback}}
 {{- if .UnknownFallback.HasNewState}}
@@ -148,7 +148,7 @@ func buildTemplateData(ast *parser.Program) (rubyTemplateData, error) {
 
 	charName := unquoteOrRaw(char.Name)
 	data := rubyTemplateData{
-		ClassName:        toPascalCase(charName) + "Agent",
+		ClassName:        "Agent",
 		InitialState:     toRubySymbol(char.InitialState),
 		Attributes:       make([]rubyHashEntry, 0, len(char.Attributes)),
 		KnowledgeEntries: make([]rubyHashEntry, 0, len(char.KnowledgeEntries)),
@@ -180,9 +180,13 @@ func buildTemplateData(ast *parser.Program) (rubyTemplateData, error) {
 
 	for _, rule := range char.GlobalBehavior.Rules {
 		if rule.ReceiveRule != nil {
+			var triggers []string
+			for _, t := range rule.ReceiveRule.Triggers {
+				triggers = append(triggers, rubyStringLiteral(strings.ToLower(unquoteOrRaw(t))))
+			}
 			data.GlobalRules = append(data.GlobalRules, rubyRule{
-				Trigger: rubyStringLiteral(strings.ToLower(unquoteOrRaw(rule.ReceiveRule.Trigger))),
-				Outcome: actionsToOutcome(rule.ReceiveRule.Actions),
+				Triggers: triggers,
+				Outcome:  actionsToOutcome(rule.ReceiveRule.Actions),
 			})
 		}
 		if rule.UnknownRule != nil {
@@ -197,9 +201,13 @@ func buildTemplateData(ast *parser.Program) (rubyTemplateData, error) {
 			Rules: make([]rubyRule, 0, len(st.Handlers)),
 		}
 		for _, handler := range st.Handlers {
+			var triggers []string
+			for _, t := range handler.Triggers {
+				triggers = append(triggers, rubyStringLiteral(strings.ToLower(unquoteOrRaw(t))))
+			}
 			state.Rules = append(state.Rules, rubyRule{
-				Trigger: rubyStringLiteral(strings.ToLower(unquoteOrRaw(handler.Trigger))),
-				Outcome: actionsToOutcome(handler.Actions),
+				Triggers: triggers,
+				Outcome:  actionsToOutcome(handler.Actions),
 			})
 		}
 		data.States = append(data.States, state)
@@ -343,11 +351,7 @@ func splitWords(value string) []string {
 	return words
 }
 
-// OutputFileName construye el nombre [nombre_personaje]_agent.rb.
-func OutputFileName(ast *parser.Program) string {
-	if ast == nil || ast.Character == nil {
-		return "agent_agent.rb"
-	}
-	name := unquoteOrRaw(ast.Character.Name)
-	return toSnakeCase(name) + "_agent.rb"
+// OutputFileName retorna siempre "agent.rb" (contrato fijo con el servidor).
+func OutputFileName(_ *parser.Program) string {
+	return "agent.rb"
 }

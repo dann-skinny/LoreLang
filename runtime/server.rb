@@ -3,7 +3,7 @@ require "json"
 require "net/http"
 require "uri"
 
-require_relative "tom_nook_agent"
+require_relative "agent"
 
 class LLMClient
   OLLAMA_URL = URI("http://localhost:11434/api/chat")
@@ -65,8 +65,8 @@ class OrchestratorApp < Sinatra::Base
     set :bind, "0.0.0.0"
     set :port, 4567
     set :show_exceptions, false
-    set :agent, TomNookAgent.new
     set :llm_client, LLMClient.new
+    set :agent, Agent.new
   end
 
   before do
