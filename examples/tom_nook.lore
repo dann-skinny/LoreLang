@@ -12,6 +12,7 @@ Personaje "Tom Nook" {
     Restricciones {
         ProhibirTemas: ["Donaciones gratuitas", "Quejas sobre precios"];
         Tono: "Amable, persuasivo y muy profesional";
+        Respuestas: "Cortas y al grano";
     }
 
     // ----- REGLAS QUE APLICAN SIEMPRE -----

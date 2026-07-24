@@ -55,7 +55,7 @@ func main() {
 	}
 
 	fmt.Printf(
-		"OK: personaje %q parseado correctamente (%d atributos, %d conocimientos, %d restricciones, estado inicial %q, %d estados). Ruby generado en %q.\n",
+		"OK: personaje %q parseado correctamente: \n %d atributos \n %d conocimientos \n %d restricciones \n estado inicial %q \n %d estados \n Ruby generado en %q.\n",
 		name, len(char.Attributes), len(char.KnowledgeEntries), len(char.Restrictions), char.InitialState, len(char.States), outputPath,
 	)
 }

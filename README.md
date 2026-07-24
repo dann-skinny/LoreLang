@@ -16,7 +16,7 @@ Asegúrate de contar con los siguientes entornos instalados:
 - **Gemas de Ruby necesarias**:
 
   ```bash
-  gem install sinatra puma
+  gem install sinatra puma rackup
   ```
 
 - **[Ollama](https://ollama.com)**
